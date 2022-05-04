@@ -21,7 +21,7 @@ class NotificationPlace extends StatefulWidget {
 
 class _NotificationPlaceState extends State<NotificationPlace>
     with TickerProviderStateMixin {
-  String _placeName = "place";
+  String _placeName = "placeNotification";
 
   double _inputTextSize = 74;
 
@@ -93,7 +93,7 @@ class _NotificationPlaceState extends State<NotificationPlace>
         child: IconButton(
             icon: const Icon(Icons.close, color: Colors.black, size: 28),
             onPressed: () {
-              updatePlace("place");
+              updatePlace("placeNotification");
               updateSize(74.0);
             }));
   }
