@@ -1,25 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 import "package:notifications/notification_controller.dart";
+import "package:notifications/notification_functions.dart";
 
-class NotificationItems extends StatefulWidget {
-  const NotificationItems({Key? key, required this.value}) : super(key: key);
+class NotificationItems extends StatelessWidget {
+  const NotificationItems({Key? key}) : super(key: key);
 
-  final String value;
+  List<TextSpan> _getMessageWidgets(String itemMessage, List<dynamic> places) {
+    List<TextSpan> textPlaces = <TextSpan>[];
 
-  @override
-  State<NotificationItems> createState() => _NotificationItemsState();
-}
+    String itemMessages = "";
+    int itemPlace = 0;
+    for (int i = 0; i < places.length; ++i) {
+      dynamic place = places[i];
+      if ((places.length - 1) == i) {
+        if (itemPlace != place["offset"]) {
+          itemMessages = itemMessage.substring(itemPlace, place["offset"]);
 
-class _NotificationItemsState extends State<NotificationItems> {
-  final NotificationController notificationController =
-      Get.put(NotificationController());
+          textPlaces.add(_getTextWidget(itemMessages));
+        }
 
-  @override
-  void initState() {
-    super.initState();
+        itemMessages = itemMessage.substring(
+            place["offset"], place["offset"] + place["length"]);
+
+        textPlaces
+            .add(_getTextWidget(itemMessages, textFontWeight: FontWeight.bold));
+
+        if (itemMessage.length - 1 != place["offset"] + place["length"]) {
+          itemMessages = itemMessage.substring(
+              place["offset"] + place["length"], itemMessage.length);
+
+          textPlaces.add(_getTextWidget(itemMessages));
+        }
+      } else {
+        if (itemPlace != place["offset"]) {
+          itemMessages = itemMessage.substring(itemPlace, place["offset"]);
+
+          textPlaces.add(_getTextWidget(itemMessages));
+        }
+
+        itemMessages = itemMessage.substring(
+            place["offset"], place["offset"] + place["length"]);
+
+        textPlaces
+            .add(_getTextWidget(itemMessages, textFontWeight: FontWeight.bold));
+
+        itemPlace = place["offset"] + place["length"];
+      }
+    }
+
+    return textPlaces;
+  }
+
+  TextSpan _getTextWidget(String text,
+      {FontWeight textFontWeight = FontWeight.normal}) {
+    return TextSpan(
+        text: text,
+        style: TextStyle(fontSize: 13.6, fontWeight: textFontWeight));
   }
 
   Widget _notificationItem(
@@ -27,9 +65,10 @@ class _NotificationItemsState extends State<NotificationItems> {
       String itemImage,
       String itemDate,
       Color itemColor,
-      String itemCustomerName,
       String itemIcon,
-      Function updateStatusNotificationItem) {
+      Function updateStatusNotificationItem,
+      List<dynamic> places,
+      String placeValue) {
     return SizedBox(
         child: GestureDetector(
             child: Card(
@@ -40,13 +79,22 @@ class _NotificationItemsState extends State<NotificationItems> {
                       Stack(children: <Widget>[
                         Padding(
                             padding: const EdgeInsets.all(7.5),
-                            child: Container(
+                            child: SizedBox(
                                 width: 43,
                                 height: 43,
-                                decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                        fit: BoxFit.fill,
-                                        image: NetworkImage(itemImage)),
+                                child: ClipRRect(
+                                    child: Image.network(itemImage,
+                                        loadingBuilder: (BuildContext context,
+                                            Widget child,
+                                            ImageChunkEvent? loadingProgress) {
+                                      if (null == loadingProgress) {
+                                        return child;
+                                      }
+
+                                      return const Center(
+                                          child: CircularProgressIndicator(
+                                              value: null));
+                                    }),
                                     borderRadius: BorderRadius.circular(43)))),
                         Positioned(
                             bottom: 5.3,
@@ -70,18 +118,10 @@ class _NotificationItemsState extends State<NotificationItems> {
                           child: Column(children: <Widget>[
                             RichText(
                               text: TextSpan(
-                                style: const TextStyle(
-                                    color: Colors.black, fontSize: 15),
-                                children: <TextSpan>[
-                                  TextSpan(
-                                      text: itemCustomerName,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold)),
-                                  TextSpan(
-                                      text: itemMessage,
-                                      style: const TextStyle(fontSize: 13.6))
-                                ],
-                              ),
+                                  style: const TextStyle(
+                                      color: Colors.black, fontSize: 15),
+                                  children: _getTextPlacesWidgets(
+                                      placeValue, itemMessage, places)),
                             ),
                             const SizedBox(height: 1.4),
                             Text(itemDate,
@@ -104,13 +144,13 @@ class _NotificationItemsState extends State<NotificationItems> {
     List<dynamic> notificationDataPlace = [];
 
     for (int i = 0; i < data.length; ++i) {
-      RegExp regExp = RegExp(placeValue);
+      RegExp regExp = RegExp(placeValue.toLowerCase());
 
       var itemInData = data[i];
 
       String itemMessage = itemInData["message"]["text"].split(":")[0];
 
-      if (regExp.hasMatch(itemMessage)) {
+      if (regExp.hasMatch(removePlaceCharacters(itemMessage).toLowerCase())) {
         notificationDataPlace.add(data[i]);
       }
     }
@@ -118,57 +158,71 @@ class _NotificationItemsState extends State<NotificationItems> {
     return notificationDataPlace;
   }
 
+  List<TextSpan> _getMessagePlaceWidgets(
+      String itemMessage, String placeValue) {
+    List<TextSpan> textPlaces = [];
+
+    int index = removePlaceCharacters(itemMessage)
+        .toLowerCase()
+        .indexOf(placeValue.toLowerCase());
+
+    List<String> itemMessages = itemMessage
+        .split(itemMessage.substring(index, index + placeValue.length));
+
+    for (int i = 0; i < itemMessages.length; ++i) {
+      if (itemMessages.length - 1 == i) {
+        textPlaces.add(_getTextWidget(itemMessages[i]));
+      } else {
+        textPlaces.add(_getTextWidget(itemMessages[i]));
+        textPlaces.add(_getTextWidget(
+            itemMessage.substring(index, index + placeValue.length),
+            textFontWeight: FontWeight.bold));
+      }
+    }
+
+    return textPlaces;
+  }
+
+  List<TextSpan> _getTextPlacesWidgets(
+      String placeValue, String itemMessage, List<dynamic> places) {
+    return ("" == placeValue)
+        ? _getMessageWidgets(itemMessage, places)
+        : _getMessagePlaceWidgets(itemMessage, placeValue);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<NotificationController>(
-        builder: (_notificationController) {
+    final NotificationController notificationController =
+        Get.put(NotificationController());
+
+    return Obx(() {
       List<dynamic> notificationDataPlace = _getNotificationDataPlace(
-          _notificationController.notificationData, widget.value);
+          notificationController.notificationData,
+          notificationController.value.value);
 
       return ListView.builder(
           itemCount: notificationDataPlace.length,
           itemBuilder: (context, index) {
             dynamic itemInData = notificationDataPlace[index];
-            DateTime itemDateInData =
-                DateTime.fromMillisecondsSinceEpoch(itemInData["receivedAt"]);
-
-            DateFormat dateFormat = DateFormat("yyyy-MM-dd hh:mm");
-            String itemDate = dateFormat.format(itemDateInData);
-            String itemMessageInData = itemInData["message"]["text"];
-            String itemCustomerName = itemInData["subjectName"];
-            String itemMessagesInData =
-                itemMessageInData.split(itemCustomerName)[1];
-            String itemMessage = itemMessagesInData.split(":")[0];
-            String itemStatus = itemInData["status"];
-            String itemId = itemInData["id"];
-
-            Color itemColor = ("unread" == itemStatus)
-                ? const Color(0xFFECF7E7)
-                : Colors.transparent;
-
-            // ignore: prefer_function_declarations_over_variables
-            Function updateStatusNotificationItem = () {
-              if ("unread" == itemStatus) {
-                notificationController.updateStatusNotificationData(
-                    "read", itemId);
-              } else {
-                notificationController.updateStatusNotificationData(
-                    "unread", itemId);
-              }
-            };
-
-            String itemImage = itemInData["image"];
-
-            String itemIcon = itemInData["icon"];
 
             return _notificationItem(
-                itemMessage,
-                itemImage,
-                itemDate,
-                itemColor,
-                itemCustomerName,
-                itemIcon,
-                updateStatusNotificationItem);
+                itemInData["message"]["text"].split(":")[0],
+                itemInData["image"],
+                notificationController.getItemDate(itemInData["receivedAt"]),
+                notificationController.getItemColor(itemInData["status"],
+                    Color(0xFFECF7E7), Colors.transparent),
+                itemInData["icon"],
+                ("unread" == itemInData["status"])
+                    ? () {
+                        notificationController.updateStatusNotificationData(
+                            "read", itemInData["id"]);
+                      }
+                    : () {
+                        notificationController.updateStatusNotificationData(
+                            "unread", itemInData["id"]);
+                      },
+                itemInData["message"]["highlights"],
+                notificationController.value.value);
           });
     });
   }

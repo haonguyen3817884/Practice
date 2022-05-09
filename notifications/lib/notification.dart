@@ -21,12 +21,6 @@ class NotificationPlace extends StatefulWidget {
 
 class _NotificationPlaceState extends State<NotificationPlace>
     with TickerProviderStateMixin {
-  String _placeName = "placeNotification";
-
-  double _inputTextSize = 74;
-
-  final _value = TextEditingController();
-
   final NotificationController notificationController =
       Get.put(NotificationController());
 
@@ -37,30 +31,19 @@ class _NotificationPlaceState extends State<NotificationPlace>
     notificationController.getNotificationData(widget.notificationData);
   }
 
-  void _updatePlaceName(String placeName) {
-    setState(() {
-      _placeName = placeName;
-    });
-  }
-
-  void _updateInputTextSize(double size) {
-    setState(() {
-      _inputTextSize = size;
-    });
-  }
-
-  Widget _placeWidget(Function updatePlace) {
+  Widget _placeWidget(Function updatePlace, Function updateValue) {
     return SizedBox(
         child: IconButton(
             icon: const Icon(Icons.search, color: Colors.black),
             onPressed: () {
               updatePlace("placeInput");
+
+              updateValue("");
             }));
   }
 
-  Widget _placeInputWidget(
-      Function updatePlace, double inputFormSize, Function updateSize) {
-    Future.delayed(const Duration(milliseconds: 800), () {
+  Widget _placeInputWidget(double inputFormSize, Function updateSize) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
       updateSize(274.0);
     });
 
@@ -68,33 +51,39 @@ class _NotificationPlaceState extends State<NotificationPlace>
         duration: const Duration(milliseconds: 400),
         child: Container(
             child: TextFormField(
-                controller: _value,
                 decoration: InputDecoration(
                     suffixIcon: IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: () {
-                          _value.clear();
+                          notificationController.updateValue("");
                         }),
                     border: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.black),
+                        borderSide: BorderSide.none,
                         borderRadius: BorderRadius.circular(43)),
                     isDense: true,
                     contentPadding: const EdgeInsets.all(0),
                     prefixIcon: const Icon(Icons.search),
                     fillColor: const Color(0xFFF5F5F5),
-                    filled: true)),
+                    filled: true),
+                onChanged: (value) {
+                  notificationController.updateValue(value);
+                }),
             margin:
                 const EdgeInsets.only(top: 0, bottom: 0, left: 0, right: 7.4),
             width: inputFormSize));
   }
 
-  Widget _placeIconWidget(Function updatePlace, Function updateSize) {
+  Widget _placeIconWidget(
+      Function updatePlace, Function updateSize, Function updateValue) {
     return SizedBox(
         child: IconButton(
             icon: const Icon(Icons.close, color: Colors.black, size: 28),
             onPressed: () {
               updatePlace("placeNotification");
+
               updateSize(74.0);
+
+              updateValue("");
             }));
   }
 
@@ -104,16 +93,24 @@ class _NotificationPlaceState extends State<NotificationPlace>
   }
 
   Widget _renderPlaceWidgets(String text) {
-    return ("placeInput" == _placeName)
-        ? _placeIconWidget(_updatePlaceName, _updateInputTextSize)
-        : _placeTextWidget(text);
+    return Obx(() {
+      return ("placeInput" == notificationController.placeName.value)
+          ? _placeIconWidget(
+              notificationController.updatePlaceName,
+              notificationController.updateSize,
+              notificationController.updateValue)
+          : _placeTextWidget(text);
+    });
   }
 
-  Widget _renderWidgets(double inputFormSize) {
-    return ("placeInput" == _placeName)
-        ? _placeInputWidget(
-            _updatePlaceName, inputFormSize, _updateInputTextSize)
-        : _placeWidget(_updatePlaceName);
+  Widget _renderWidgets() {
+    return Obx(() {
+      return ("placeInput" == notificationController.placeName.value)
+          ? _placeInputWidget(notificationController.inputTextSize.value,
+              notificationController.updateSize)
+          : _placeWidget(notificationController.updatePlaceName,
+              notificationController.updateValue);
+    });
   }
 
   @override
@@ -126,14 +123,15 @@ class _NotificationPlaceState extends State<NotificationPlace>
             actions: <Widget>[
               AnimatedSwitcher(
                   duration: const Duration(milliseconds: 400),
-                  child: _renderWidgets(_inputTextSize))
+                  child: _renderWidgets())
             ],
             backgroundColor: Colors.transparent,
             systemOverlayStyle: const SystemUiOverlayStyle(
                 statusBarColor: Colors.transparent,
                 statusBarIconBrightness: Brightness.dark),
-            elevation: 0.0),
-        body: NotificationItems(value: _value.text),
+            elevation: 0.0,
+            centerTitle: false),
+        body: const NotificationItems(),
         backgroundColor: const Color(0xFFFFFFFF));
   }
 }
