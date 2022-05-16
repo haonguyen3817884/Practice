@@ -12,3 +12,39 @@ String removePlaceCharacters(String str) {
   str = str.replaceAll(RegExp("\u02C6|\u0306|\u031B"), "");
   return str;
 }
+
+List<dynamic> getHighlightPlaces(String message, String placeValue) {
+  List<dynamic> places = [];
+
+  String replacedPlaceValue = "";
+  int index = 0;
+  String placeMessage = "";
+
+  placeMessage = removePlaceCharacters(message).toLowerCase();
+
+  index = placeMessage.indexOf(removePlaceCharacters(placeValue).toLowerCase());
+
+  if ("" != placeValue) {
+    for (int i = 0; i < placeValue.length; ++i) {
+      replacedPlaceValue = replacedPlaceValue + " ";
+    }
+
+    while (-1 != index) {
+      dynamic place = {};
+      place["offset"] = index;
+
+      place["length"] = placeValue.length;
+
+      places.add(place);
+
+      placeMessage = placeMessage.replaceFirst(
+          RegExp(removePlaceCharacters(placeValue).toLowerCase()),
+          replacedPlaceValue);
+
+      index =
+          placeMessage.indexOf(removePlaceCharacters(placeValue).toLowerCase());
+    }
+  }
+
+  return places;
+}
