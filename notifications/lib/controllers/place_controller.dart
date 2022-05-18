@@ -22,4 +22,8 @@ class NotificationPlaceController extends GetxController {
   void updatePlaceLoading(bool isLoading) {
     placeLoading.value = isLoading;
   }
+
+  bool isPlaceInput() {
+    return ("placeInput" == placeName.value) ? true : false;
+  }
 }

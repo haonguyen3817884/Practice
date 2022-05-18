@@ -5,13 +5,10 @@ import "package:notifications/places/body/right/right_bottom_place.dart";
 class NotificationItemRight extends StatelessWidget {
   const NotificationItemRight(
       {Key? key,
-      required this.placeValue,
       required this.message,
       required this.places,
       required this.date})
       : super(key: key);
-
-  final String placeValue;
 
   final String message;
   final List<dynamic> places;
@@ -23,8 +20,7 @@ class NotificationItemRight extends StatelessWidget {
     return Flexible(
         child: SizedBox(
             child: Column(children: <Widget>[
-      NotificationItemRightTop(
-          placeValue: placeValue, message: message, places: places),
+      NotificationItemRightTop(message: message, places: places),
       const SizedBox(height: 1.4),
       NotificationItemRightBottom(date: date)
     ], crossAxisAlignment: CrossAxisAlignment.start)));

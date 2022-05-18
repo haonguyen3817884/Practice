@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class Item {
@@ -207,5 +208,13 @@ class Item {
 
     _itemSubjectName = itemSubjectName;
     _isItemSubscribed = isItemSubscribed;
+  }
+
+  bool isUnread() {
+    return ("unread" == _itemStatus) ? true : false;
+  }
+
+  Color getItemColor() {
+    return (isUnread()) ? Colors.transparent : const Color(0xFFECF7E7);
   }
 }

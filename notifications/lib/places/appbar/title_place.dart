@@ -15,25 +15,21 @@ class NotificationTitlePlace extends StatelessWidget {
         style: const TextStyle(color: Colors.black, fontSize: 28));
   }
 
-  Widget _placeIconWidget(
-      Function updatePlace, Function updateSize, Function updateValue) {
+  Widget _placeIconWidget() {
     return SizedBox(
         child: IconButton(
             icon: const Icon(Icons.close, color: Colors.black, size: 28),
             onPressed: () {
-              updatePlace("placeNotification");
-              updateSize(74.0);
-              updateValue("");
+              _notificationPlaceController.updatePlaceName("placeNotification");
+              _notificationPlaceController.updatePlaceInputTextSize(74.0);
+              _notificationPlaceController.updatePlaceInputValue("");
             }));
   }
 
   Widget _renderTitleWidgets(String text) {
     return Obx(() {
-      return ("placeInput" == _notificationPlaceController.placeName.value)
-          ? _placeIconWidget(
-              _notificationPlaceController.updatePlaceName,
-              _notificationPlaceController.updatePlaceInputTextSize,
-              _notificationPlaceController.updatePlaceInputValue)
+      return (_notificationPlaceController.isPlaceInput())
+          ? _placeIconWidget()
           : _placeTextWidget(text);
     });
   }

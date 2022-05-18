@@ -1,10 +1,16 @@
 import 'package:get/get.dart';
+import 'package:loadany/loadany.dart';
 
 import "package:notifications/models/item.dart";
+
+import "package:notifications/notification_functions.dart";
 
 class NotificationDataController extends GetxController {
   List<Item> notificationData = <Item>[].obs;
   var index = 1.obs;
+
+  var isLastItems = false.obs;
+  var loadingStatus = LoadStatus.normal.obs;
 
   void setNotificationData(List<dynamic> data) {
     List<Item> itemData = <Item>[].obs;
@@ -37,11 +43,15 @@ class NotificationDataController extends GetxController {
     notificationData = itemData;
   }
 
-  void updateStatusNotificationData(String itemId, String itemStatus) {
+  void updateStatusNotificationData(String itemId) {
     for (int i = 0; i < notificationData.length; ++i) {
       Item item = notificationData[i];
       if (itemId == item.getItemId()) {
-        item.setItemStatus(itemStatus);
+        if (item.isUnread()) {
+          item.setItemStatus("read");
+        } else {
+          item.setItemStatus("unread");
+        }
       }
 
       notificationData[i] = item;
@@ -60,6 +70,14 @@ class NotificationDataController extends GetxController {
 
   void updatePlaceIndex(int place) {
     index.value = place;
+  }
+
+  void updateIsLastItems(bool isLast) {
+    isLastItems.value = isLast;
+  }
+
+  void updateLoadingStatus(LoadStatus status) {
+    loadingStatus.value = status;
   }
 
   List<Item> getNotificationDataPlace(List<Item> data) {
@@ -81,8 +99,17 @@ class NotificationDataController extends GetxController {
     return notificationDataPlace;
   }
 
-  void load(List<Item> data, Function updateLoading) {
-    updateLoading(false);
-    updateIndex(data);
+  List<Item> getNotificationDataOnCustomerInputs(String customerValue) {
+    List<Item> notificationDataPlace = <Item>[];
+    RegExp regExp = RegExp(customerValue.toLowerCase());
+
+    for (int i = 0; i < notificationData.length; ++i) {
+      Item itemInData = notificationData[i];
+      String itemMessage = itemInData.getItemMessage()["text"].split(":")[0];
+      if (regExp.hasMatch(removePlaceCharacters(itemMessage).toLowerCase())) {
+        notificationDataPlace.add(itemInData);
+      }
+    }
+    return notificationDataPlace;
   }
 }

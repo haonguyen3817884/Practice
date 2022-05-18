@@ -7,7 +7,7 @@ import "package:notifications/places/body/body_place.dart";
 import "package:notifications/places/appbar/actions_place.dart";
 import "package:notifications/places/appbar/title_place.dart";
 
-class NotificationPlace extends StatefulWidget {
+class NotificationPlace extends GetView<NotificationDataController> {
   const NotificationPlace(
       {Key? key, required this.title, required this.notificationData})
       : super(key: key);
@@ -17,25 +17,14 @@ class NotificationPlace extends StatefulWidget {
   final List<dynamic> notificationData;
 
   @override
-  State<NotificationPlace> createState() => _NotificationPlaceState();
-}
-
-class _NotificationPlaceState extends State<NotificationPlace> {
-  final NotificationDataController _notificationDataController =
-      Get.put(NotificationDataController());
-
-  @override
-  void initState() {
-    super.initState();
-
-    _notificationDataController.setNotificationData(widget.notificationData);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    Get.put(NotificationDataController());
+
+    controller.setNotificationData(notificationData);
+
     return Scaffold(
         appBar: AppBar(
-            title: NotificationTitlePlace(title: widget.title),
+            title: NotificationTitlePlace(title: title),
             actions: <Widget>[NotificationActionsPlace()],
             backgroundColor: Colors.transparent,
             systemOverlayStyle: const SystemUiOverlayStyle(
@@ -43,7 +32,7 @@ class _NotificationPlaceState extends State<NotificationPlace> {
                 statusBarIconBrightness: Brightness.dark),
             elevation: 0.0,
             centerTitle: false),
-        body: NotificationItems(),
+        body: const NotificationItems(),
         backgroundColor: const Color(0xFFFFFFFF));
   }
 }

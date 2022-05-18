@@ -30,6 +30,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  loadany: ^1.0.0
+
   intl: ^0.17.0
 
   get: ^4.1.4

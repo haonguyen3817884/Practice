@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import "package:notifications/notification_functions.dart";
 
-class NotificationItemRightTop extends StatelessWidget {
-  const NotificationItemRightTop(
-      {Key? key,
-      required this.placeValue,
-      required this.message,
-      required this.places})
-      : super(key: key);
+import "package:notifications/controllers/place_controller.dart";
 
-  final String placeValue;
+class NotificationItemRightTop extends StatelessWidget {
+  NotificationItemRightTop(
+      {Key? key, required this.message, required this.places})
+      : super(key: key);
 
   final String message;
 
   final List<dynamic> places;
+
+  final NotificationPlaceController _notificationPlaceController =
+      Get.put(NotificationPlaceController());
 
   TextSpan _getTextWidget(String text,
       {FontWeight textFontWeight = FontWeight.normal}) {
@@ -22,12 +23,12 @@ class NotificationItemRightTop extends StatelessWidget {
         style: TextStyle(fontSize: 13.6, fontWeight: textFontWeight));
   }
 
-  List<TextSpan> _getMessageWidgets(
-      String itemMessage, List<dynamic> places, String customerValue) {
+  List<TextSpan> _getMessageWidgets(String itemMessage, List<dynamic> places) {
     List<TextSpan> textPlaces = <TextSpan>[];
 
     List<dynamic> placePlaces = new List.from(places)
-      ..addAll(getHighlightPlaces(itemMessage, customerValue));
+      ..addAll(getHighlightPlaces(
+          itemMessage, _notificationPlaceController.placeInputValue.value));
 
     for (int i = 0; i < itemMessage.length; ++i) {
       bool isIn = false;
@@ -55,7 +56,7 @@ class NotificationItemRightTop extends StatelessWidget {
     return RichText(
       text: TextSpan(
           style: const TextStyle(color: Colors.black, fontSize: 15),
-          children: _getMessageWidgets(message, places, placeValue)),
+          children: _getMessageWidgets(message, places)),
     );
   }
 }

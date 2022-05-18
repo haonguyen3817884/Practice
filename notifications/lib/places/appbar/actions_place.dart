@@ -15,9 +15,9 @@ class NotificationActionsPlace extends StatelessWidget {
   final NotificationDataController _notificationDataController =
       Get.put(NotificationDataController());
 
-  Widget _placeInputWidget(double inputFormSize, Function updateSize) {
+  Widget _placeInputWidget(double inputFormSize) {
     WidgetsBinding.instance!.addPostFrameCallback((_) {
-      updateSize(274.0);
+      _notificationPlaceController.updatePlaceInputTextSize(274.0);
     });
 
     return AnimatedSize(
@@ -44,25 +44,23 @@ class NotificationActionsPlace extends StatelessWidget {
             width: inputFormSize));
   }
 
-  Widget _placeIconWidget(Function updatePlace, Function updateValue) {
+  Widget _placeIconWidget() {
     return SizedBox(
         child: IconButton(
             icon: const Icon(Icons.search, color: Colors.black),
             onPressed: () {
-              updatePlace("placeInput");
+              _notificationPlaceController.updatePlaceName("placeInput");
 
-              updateValue("");
+              _notificationPlaceController.updatePlaceInputValue("");
             }));
   }
 
   Widget _renderActionsWidgets() {
     return Obx(() {
-      return ("placeInput" == _notificationPlaceController.placeName.value)
+      return (_notificationPlaceController.isPlaceInput())
           ? _placeInputWidget(
-              _notificationPlaceController.placeInputTextSize.value,
-              _notificationPlaceController.updatePlaceInputTextSize)
-          : _placeIconWidget(_notificationPlaceController.updatePlaceName,
-              _notificationPlaceController.updatePlaceInputValue);
+              _notificationPlaceController.placeInputTextSize.value)
+          : _placeIconWidget();
     });
   }
 
