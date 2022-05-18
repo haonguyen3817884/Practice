@@ -101,7 +101,7 @@ class NotificationDataController extends GetxController {
 
   List<Item> getNotificationDataOnCustomerInputs(String customerValue) {
     List<Item> notificationDataPlace = <Item>[];
-    RegExp regExp = RegExp(customerValue.toLowerCase());
+    RegExp regExp = RegExp(removePlaceCharacters(customerValue).toLowerCase());
 
     for (int i = 0; i < notificationData.length; ++i) {
       Item itemInData = notificationData[i];

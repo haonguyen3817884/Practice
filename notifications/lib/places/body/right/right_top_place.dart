@@ -26,7 +26,7 @@ class NotificationItemRightTop extends StatelessWidget {
   List<TextSpan> _getMessageWidgets(String itemMessage, List<dynamic> places) {
     List<TextSpan> textPlaces = <TextSpan>[];
 
-    List<dynamic> placePlaces = new List.from(places)
+    List<dynamic> placePlaces = List.from(places)
       ..addAll(getHighlightPlaces(
           itemMessage, _notificationPlaceController.placeInputValue.value));
 

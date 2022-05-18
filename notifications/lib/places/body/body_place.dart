@@ -34,7 +34,7 @@ class NotificationItems extends StatelessWidget {
 
       Future<void> getLoadMore() async {
         _notificationDataController.updateLoadingStatus(LoadStatus.loading);
-        Timer.periodic(Duration(milliseconds: 5000), (Timer timer) {
+        Timer.periodic(const Duration(milliseconds: 5000), (Timer timer) {
           timer.cancel();
 
           _notificationDataController
