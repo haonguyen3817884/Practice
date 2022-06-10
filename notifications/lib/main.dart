@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 
-import "package:notifications/notification_data.dart";
 import "package:notifications/places/notification_place.dart";
 
 void main() {
-  var notificationData = getData();
-
-  runApp(MyApp(notificationData: notificationData["data"]));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key, required this.notificationData}) : super(key: key);
-
-  final List<dynamic> notificationData;
+  const MyApp({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
@@ -22,8 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
           primarySwatch: Colors.blue,
           colorScheme: ThemeData().colorScheme.copyWith(primary: Colors.black)),
-      home: NotificationPlace(
-          title: "Notification", notificationData: notificationData),
+      home: const NotificationPlace(title: "Notification"),
     );
   }
 }

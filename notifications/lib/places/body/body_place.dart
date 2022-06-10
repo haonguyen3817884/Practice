@@ -1,9 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import "package:notifications/models/item.dart";
+import "package:notifications/models/notification_item.dart";
 
 import "package:notifications/controllers/data_controller.dart";
 
@@ -12,18 +10,19 @@ import 'package:loadany/loadany.dart';
 
 import "package:notifications/places/body/item_place.dart";
 
-// ignore: must_be_immutable
+import "package:notifications/notification_messages.dart";
+
 class NotificationItems extends StatelessWidget {
-  const NotificationItems({Key? key}) : super(key: key);
+  NotificationItems({Key? key}) : super(key: key);
+
+  final NotificationDataController _notificationDataController =
+      Get.put(NotificationDataController());
+
+  final NotificationPlaceController _notificationPlaceController =
+      Get.put(NotificationPlaceController());
 
   @override
   Widget build(BuildContext context) {
-    final NotificationDataController _notificationDataController =
-        Get.put(NotificationDataController());
-
-    final NotificationPlaceController _notificationPlaceController =
-        Get.put(NotificationPlaceController());
-
     return Obx(() {
       List<Item> notificationDataOnCustomerInputs =
           _notificationDataController.getNotificationDataOnCustomerInputs(
@@ -32,41 +31,19 @@ class NotificationItems extends StatelessWidget {
       List<Item> itemData = _notificationDataController
           .getNotificationDataPlace(notificationDataOnCustomerInputs);
 
-      Future<void> getLoadMore() async {
-        _notificationDataController.updateLoadingStatus(LoadStatus.loading);
-        Timer.periodic(const Duration(milliseconds: 5000), (Timer timer) {
-          timer.cancel();
-
-          _notificationDataController
-              .updateIndex(notificationDataOnCustomerInputs);
-
-          if (itemData.length ==
-              _notificationDataController.notificationData.length) {
-            _notificationDataController
-                .updateLoadingStatus(LoadStatus.completed);
-          } else {
-            _notificationDataController
-                .updateIndex(notificationDataOnCustomerInputs);
-            _notificationDataController.updateLoadingStatus(LoadStatus.normal);
-          }
-        });
-      }
-
       return RefreshIndicator(
           onRefresh: () {
-            return Future.delayed(
-                const Duration(
-                  milliseconds: 540,
-                ), () {
-              _notificationDataController.updatePlaceIndex(1);
-            });
+            return _notificationDataController.refreshNotificationData();
           },
           child: LoadAny(
-            onLoadMore: getLoadMore,
+            onLoadMore: () {
+              return _notificationDataController
+                  .loadItems(notificationDataOnCustomerInputs);
+            },
             status: _notificationDataController.loadingStatus.value,
-            loadingMsg: 'loading',
-            errorMsg: 'error',
-            finishMsg: 'place',
+            loadingMsg: loadingNormal,
+            errorMsg: loadingError,
+            finishMsg: loadingFinished,
             child: CustomScrollView(
               slivers: <Widget>[
                 SliverList(

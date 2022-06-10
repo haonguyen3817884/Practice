@@ -1,13 +1,17 @@
 import 'package:get/get.dart';
 import 'package:loadany/loadany.dart';
 
-import "package:notifications/models/item.dart";
+import "package:notifications/models/notification_item.dart";
 
 import "package:notifications/notification_functions.dart";
 
+import "package:notifications/notification_data.dart";
+
 class NotificationDataController extends GetxController {
   List<Item> notificationData = <Item>[].obs;
+
   var index = 1.obs;
+  final maxItems = 11;
 
   var isLastItems = false.obs;
   var loadingStatus = LoadStatus.normal.obs;
@@ -18,24 +22,7 @@ class NotificationDataController extends GetxController {
     for (int i = 0; i < data.length; ++i) {
       dynamic itemInData = data[i];
 
-      Item item = Item(
-          itemId: itemInData["id"],
-          itemType: itemInData["type"],
-          itemTitle: itemInData["title"],
-          itemMessage: itemInData["message"],
-          itemImage: itemInData["image"],
-          itemIcon: itemInData["icon"],
-          itemStatus: itemInData["status"],
-          itemSubscription: itemInData["subscription"],
-          itemReadAt: itemInData["readAt"],
-          itemCreatedAt: itemInData["createdAt"],
-          itemReceivedAt: itemInData["receivedAt"],
-          itemUpdatedAt: itemInData["updatedAt"],
-          itemImageThumb: itemInData["imageThumb"],
-          itemAnimation: itemInData["animation"],
-          itemTracking: itemInData["tracking"],
-          itemSubjectName: itemInData["subjectName"],
-          isItemSubscribed: itemInData["isSubscribed"]);
+      Item item = Item.fromJson(itemInData);
 
       itemData.add(item);
     }
@@ -44,25 +31,20 @@ class NotificationDataController extends GetxController {
   }
 
   void updateStatusNotificationData(String itemId) {
-    for (int i = 0; i < notificationData.length; ++i) {
-      Item item = notificationData[i];
-      if (itemId == item.getItemId()) {
-        if (item.isUnread()) {
-          item.setItemStatus("read");
-        } else {
-          item.setItemStatus("unread");
-        }
-      }
+    int notificationDataIndex = notificationData
+        .indexWhere((notificationItem) => itemId == notificationItem.id);
+    Item item = notificationData[notificationDataIndex];
 
-      notificationData[i] = item;
-    }
+    (item.isUnread()) ? item.status = "read" : item.status = "unread";
+
+    notificationData[notificationDataIndex] = item;
   }
 
   void updateIndex(List<Item> data) {
-    if (data.length >= (index.value + 1) * 11) {
+    if (data.length >= (index.value + 1) * maxItems) {
       index.value = index.value + 1;
     } else {
-      if (data.length > index.value * 11) {
+      if (data.length > index.value * maxItems) {
         index.value = index.value + 1;
       }
     }
@@ -84,8 +66,8 @@ class NotificationDataController extends GetxController {
     List<Item> notificationDataPlace = <Item>[];
     int dataLength = 0;
 
-    if (data.length >= index.value * 11) {
-      dataLength = index.value * 11;
+    if (data.length >= index.value * maxItems) {
+      dataLength = index.value * maxItems;
     } else {
       dataLength = data.length;
     }
@@ -105,11 +87,40 @@ class NotificationDataController extends GetxController {
 
     for (int i = 0; i < notificationData.length; ++i) {
       Item itemInData = notificationData[i];
-      String itemMessage = itemInData.getItemMessage()["text"].split(":")[0];
+      String itemMessage = itemInData.message["text"].split(":")[0];
       if (regExp.hasMatch(removePlaceCharacters(itemMessage).toLowerCase())) {
         notificationDataPlace.add(itemInData);
       }
     }
     return notificationDataPlace;
+  }
+
+  Future<void> refreshNotificationData() async {
+    return Future.delayed(const Duration(milliseconds: 540), () {
+      updatePlaceIndex(1);
+
+      updateLoadingStatus(LoadStatus.normal);
+    });
+  }
+
+  Future<void> loadItems(List<Item> data) async {
+    updateLoadingStatus(LoadStatus.loading);
+    return Future.delayed(const Duration(milliseconds: 5000), () {
+      if (index.value * maxItems >= data.length) {
+        updateLoadingStatus(LoadStatus.completed);
+      } else {
+        updateIndex(data);
+        updateLoadingStatus(LoadStatus.normal);
+      }
+    });
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+
+    setNotificationData(getData()["data"]);
+
+    updateLoadingStatus(LoadStatus.normal);
   }
 }

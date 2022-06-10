@@ -4,17 +4,14 @@ import "package:notifications/notification_functions.dart";
 
 import "package:notifications/controllers/place_controller.dart";
 
-class NotificationItemRightTop extends StatelessWidget {
-  NotificationItemRightTop(
+class NotificationItemRightTop extends GetView<NotificationPlaceController> {
+  const NotificationItemRightTop(
       {Key? key, required this.message, required this.places})
       : super(key: key);
 
   final String message;
 
   final List<dynamic> places;
-
-  final NotificationPlaceController _notificationPlaceController =
-      Get.put(NotificationPlaceController());
 
   TextSpan _getTextWidget(String text,
       {FontWeight textFontWeight = FontWeight.normal}) {
@@ -27,8 +24,8 @@ class NotificationItemRightTop extends StatelessWidget {
     List<TextSpan> textPlaces = <TextSpan>[];
 
     List<dynamic> placePlaces = List.from(places)
-      ..addAll(getHighlightPlaces(
-          itemMessage, _notificationPlaceController.placeInputValue.value));
+      ..addAll(
+          getHighlightPlaces(itemMessage, controller.placeInputValue.value));
 
     for (int i = 0; i < itemMessage.length; ++i) {
       bool isIn = false;

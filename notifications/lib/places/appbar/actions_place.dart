@@ -1,19 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loadany/loadany.dart';
 import "package:notifications/controllers/place_controller.dart";
 
 import "package:notifications/controllers/data_controller.dart";
 
-class NotificationActionsPlace extends StatelessWidget {
-  NotificationActionsPlace({Key? key}) : super(key: key);
+class NotificationActionsPlace extends StatefulWidget {
+  const NotificationActionsPlace({Key? key}) : super(key: key);
 
+  @override
+  State<NotificationActionsPlace> createState() =>
+      _NotificationActionsPlaceState();
+}
+
+class _NotificationActionsPlaceState extends State<NotificationActionsPlace> {
   final TextEditingController _textController = TextEditingController();
+
+  final NotificationDataController _notificationDataController =
+      Get.put(NotificationDataController());
 
   final NotificationPlaceController _notificationPlaceController =
       Get.put(NotificationPlaceController());
 
-  final NotificationDataController _notificationDataController =
-      Get.put(NotificationDataController());
+  @override
+  void initState() {
+    super.initState();
+
+    _textController.addListener(() {
+      _notificationPlaceController.updatePlaceInputValue(_textController.text);
+
+      _notificationDataController.updatePlaceIndex(1);
+
+      _notificationDataController.updateLoadingStatus(LoadStatus.normal);
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    _textController.dispose();
+  }
 
   Widget _placeInputWidget(double inputFormSize) {
     WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -52,6 +79,12 @@ class NotificationActionsPlace extends StatelessWidget {
               _notificationPlaceController.updatePlaceName("placeInput");
 
               _notificationPlaceController.updatePlaceInputValue("");
+
+              _textController.clear();
+              _notificationDataController.updatePlaceIndex(1);
+
+              _notificationDataController
+                  .updateLoadingStatus(LoadStatus.normal);
             }));
   }
 
@@ -66,12 +99,6 @@ class NotificationActionsPlace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _textController.addListener(() {
-      _notificationPlaceController.updatePlaceInputValue(_textController.text);
-
-      _notificationDataController.updatePlaceIndex(1);
-    });
-
     return AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
         child: _renderActionsWidgets());
